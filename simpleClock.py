@@ -3,33 +3,15 @@ from tkinter import messagebox
 
 import time, datetime
 
-root = Tk()
-root.title("Smart Clock v1")
-root.geometry("800x480")
-
-# create the main sections of the layout, 
-# and lay them out
-top = Frame(root, bg="black")
-top.pack(side=TOP, fill=BOTH, expand=True)
-
-bottom = Frame(root, bg="black")
-bottom.pack(side=BOTTOM, fill=BOTH, expand=True)
-
-alarm_settings = Frame(bottom, bg="black")
-alarm_settings.pack(fill = BOTH, expand=True, side=BOTTOM)
-
-alarm_settings_hrs = Frame(alarm_settings, bg="black")
-alarm_settings_hrs.pack(fill = BOTH, expand=True, side=LEFT)
-
-alarm_settings_min = Frame(alarm_settings, bg="black")
-alarm_settings_min.pack(fill = BOTH, expand=True, side=RIGHT)
-
-
+import audio_alarm
 
 alarm_time_hrs = 11
 alarm_time_min = 00
 alarm_setting = False
 
+# ------------------FUNCTIONS-----------------------
+
+# ---- CLOCK ----
 def tick():
     global alarm_time_hrs, alarm_time_min, alarm_setting
     current_time = time.strftime('%H:%M:%S') 
@@ -38,7 +20,9 @@ def tick():
     now = datetime.datetime.now()
     if alarm_setting == True:
         if ((alarm_time_hrs == now.hour) & (alarm_time_min == now.minute)):
+            audio_alarm.play()
             messagebox.showinfo("ALARM!", "It's {:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min))
+            audio_alarm.stop()
             alarm_setting = False
             update_alarm()
     
@@ -79,6 +63,32 @@ def toggle_alarm():
     global alarm_setting
     alarm_setting = not alarm_setting
     update_alarm()
+
+# ---- AUDIO ----
+
+
+# ------------------GUI-----------------------
+
+root = Tk()
+root.title("Smart Clock v1")
+root.geometry("800x480")
+
+# create the main sections of the layout, 
+# and lay them out
+top = Frame(root, bg="black")
+top.pack(side=TOP, fill=BOTH, expand=True)
+
+bottom = Frame(root, bg="black")
+bottom.pack(side=BOTTOM, fill=BOTH, expand=True)
+
+alarm_settings = Frame(bottom, bg="black")
+alarm_settings.pack(fill = BOTH, expand=True, side=BOTTOM)
+
+alarm_settings_hrs = Frame(alarm_settings, bg="black")
+alarm_settings_hrs.pack(fill = BOTH, expand=True, side=LEFT)
+
+alarm_settings_min = Frame(alarm_settings, bg="black")
+alarm_settings_min.pack(fill = BOTH, expand=True, side=RIGHT)
     
 clock_label = Label(root, font=('times', 32, 'bold'), bg='black', fg="white")
 clock_label.pack(in_=top, fill=BOTH, expand=1)

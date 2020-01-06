@@ -4,12 +4,15 @@ import wave
 import sys
 import threading
 
+is_playing = False
+my_thread = None
+
 
 def play_audio():
     global is_playing
     global my_thread
     chunk = 1024
-    wf = wave.open('../alarm_wav.wav', 'rb')
+    wf = wave.open('alarm_wav.wav', 'rb')
     p = pyaudio.PyAudio()
 
     stream = p.open(
@@ -36,7 +39,7 @@ def loop_play():
     while is_playing:
         play_audio()
 
-def press_button_play():
+def play():
     global is_playing
     global my_thread
 
@@ -46,7 +49,7 @@ def press_button_play():
         my_thread.start()
 
 
-def press_button_stop():
+def stop():
     global is_playing
     global my_thread
 
@@ -54,19 +57,3 @@ def press_button_stop():
         is_playing = False
         my_thread.join()
 
-# main
-
-is_playing = False
-my_thread = None
-
-root = Tk()
-root.title("WAV-Loop")
-root.geometry("400x300")
-
-button_start = Button(root, text="PLAY", command=press_button_play)
-button_start.grid()
-
-button_stop = Button(root, text="STOP", command=press_button_stop)
-button_stop.grid()
-
-root.mainloop()
