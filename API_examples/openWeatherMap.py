@@ -13,7 +13,7 @@ from urllib.request import urlopen
 
 def city_forecast(city):
   response = requests.get(
-          "https://api.openweathermap.org/data/2.5/weather?q="+city+"&appid="+api_keys.open_weather_key
+          "https://api.openweathermap.org/data/2.5/weather?q="+city+"&appid="+api_keys.open_weather_key+"&units=metric"
   )
   print("request")
   return response.json()
