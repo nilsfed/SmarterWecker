@@ -1,13 +1,21 @@
 from tkinter import *
 from tkinter import messagebox
+from PIL import Image, ImageTk
 
 import time, datetime
 
-import audio_alarm
+import audio_alarm, weather
+import threading
 
+# Initial Values
+
+city_of_interest = "Karlsruhe,de"
 alarm_time_hrs = 11
 alarm_time_min = 00
 alarm_setting = False
+
+#default forecast for debugging/offline
+forecast = {'coord': {'lon': 8.4, 'lat': 49.01}, 'weather': [{'id': 701, 'main': 'Mist', 'description': 'sun', 'icon': '50n'}], 'base': 'stations', 'main': {'temp': 1.37, 'feels_like': -1.11, 'temp_min': -0.56, 'temp_max': 4, 'pressure': 1027, 'humidity': 100}, 'visibility': 1400, 'wind': {'speed': 1}, 'clouds': {'all': 90}, 'dt': 1578326220, 'sys': {'type': 1, 'id': 1314, 'country': 'DE', 'sunrise': 1578295188, 'sunset': 1578325422}, 'timezone': 3600, 'id': 2892794, 'name': 'Karlsruhe', 'cod': 200}
 
 # ------------------FUNCTIONS-----------------------
 
@@ -65,7 +73,27 @@ def toggle_alarm():
     update_alarm()
 
 # ---- AUDIO ----
+# imported from audi_alarm.py
 
+
+
+# ---- WEATHER ----
+# imported from weather.py
+
+def update_weather():
+	global forecast
+
+	try:
+		forecast = weather.city_forecast(city_of_interest)
+	except:
+		"no new weather data received"
+	
+
+	weather_label["text"] = "Description: "+ forecast["weather"][0]["description"]
+	temperature_label["text"] = "Temperature: {:.1f}°C   Max: {:.1f}°C   Min: {:.1f}°C".format(forecast["main"]["temp"], forecast["main"]["temp_max"], forecast["main"]["temp_min"])
+	icon_id = forecast["weather"][0]["icon"]
+	icon_url = "https://openweathermap.org/img/wn/"+icon_id+"@2x.png"
+	threading.Timer(3600, update_weather).start()
 
 # ------------------GUI-----------------------
 
@@ -81,6 +109,9 @@ top.pack(side=TOP, fill=BOTH, expand=True)
 bottom = Frame(root, bg="black")
 bottom.pack(side=BOTTOM, fill=BOTH, expand=True)
 
+clock_label = Label(root, font=('TkDefaultFont', 32, 'bold'), bg='black', fg="white")
+clock_label.pack(in_=top, fill=BOTH, expand=1)
+
 alarm_settings = Frame(bottom, bg="black")
 alarm_settings.pack(fill = BOTH, expand=True, side=BOTTOM)
 
@@ -89,11 +120,8 @@ alarm_settings_hrs.pack(fill = BOTH, expand=True, side=LEFT)
 
 alarm_settings_min = Frame(alarm_settings, bg="black")
 alarm_settings_min.pack(fill = BOTH, expand=True, side=RIGHT)
-    
-clock_label = Label(root, font=('times', 32, 'bold'), bg='black', fg="white")
-clock_label.pack(in_=top, fill=BOTH, expand=1)
 
-alarm_label = Label(root, font=('times', 24, 'bold'), bg='black', fg="white")
+alarm_label = Label(root, font=('TkDefaultFont', 24, 'bold'), bg='black', fg="white")
 alarm_label.pack (in_=bottom, fill= BOTH, expand=1)
 
 
@@ -110,6 +138,18 @@ but_dec_hrs.pack(in_=alarm_settings_hrs)
 but_enable_alarm = Button(root, text="disabled",bg='black', fg="white", width=20, height=2, command=toggle_alarm)
 but_enable_alarm.pack(in_=alarm_settings)
 
+city_label = Label(root, bg='black', fg="white",font=('TkDefaultFont', 18))
+city_label["text"] = "Weather in: " + city_of_interest
+city_label.pack(in_=top)
+
+temperature_label = Label(root, bg='black', fg="white",font=('TkDefaultFont', 18))
+temperature_label.pack(in_=top)
+
+weather_label = Label(root, bg='black', fg="white", font=('TkDefaultFont', 18))
+weather_label.pack(in_=top)
+
 tick()
 update_alarm()
+update_weather()
+
 root.mainloop()
