@@ -46,8 +46,10 @@ def update_alarm():
     alarm_label["text"] = alarm_string
     if alarm_setting == True:
         but_enable_alarm["text"] = "enabled"
+        but_enable_alarm.configure(fg="green") 
     else:
         but_enable_alarm["text"] = "disabled"
+        but_enable_alarm.configure(fg="red") 
     
 def inc_hrs():
     global alarm_time_hrs
@@ -98,7 +100,7 @@ def update_weather():
 	try:
 		weather_icon = weather.weather_icon(icon_id).resize((60, 60), Image.LANCZOS)
 		tk_image = ImageTk.PhotoImage(weather_icon)
-		canvas.itemconfigure(weater_picture, image = tk_image)
+		canvas.itemconfigure(weather_picture, image = tk_image)
 	except:
 		print("no image received")
 
@@ -174,7 +176,7 @@ temperature_label.pack(in_=top_right)
 canvas = Canvas(root, width=60, height=60, bg="grey")
 canvas.pack(in_=top_right)
 
-weater_picture = canvas.create_image(30, 30, image=tk_image)
+weather_picture = canvas.create_image(30, 30, image=tk_image)
 
 weather_label = Label(root, bg='black', fg="white", font=('TkDefaultFont', 18))
 weather_label.pack(in_=top_right)
