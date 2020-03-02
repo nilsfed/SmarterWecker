@@ -16,6 +16,8 @@ alarm_setting = False
 
 #default forecast for debugging/offline
 forecast = {'coord': {'lon': 8.4, 'lat': 49.01}, 'weather': [{'id': 701, 'main': 'Mist', 'description': 'sun', 'icon': '50n'}], 'base': 'stations', 'main': {'temp': 1.37, 'feels_like': -1.11, 'temp_min': -0.56, 'temp_max': 4, 'pressure': 1027, 'humidity': 100}, 'visibility': 1400, 'wind': {'speed': 1}, 'clouds': {'all': 90}, 'dt': 1578326220, 'sys': {'type': 1, 'id': 1314, 'country': 'DE', 'sunrise': 1578295188, 'sunset': 1578325422}, 'timezone': 3600, 'id': 2892794, 'name': 'Karlsruhe', 'cod': 200}
+weather_icon = None
+tk_image = None
 
 # ------------------FUNCTIONS-----------------------
 
@@ -73,27 +75,45 @@ def toggle_alarm():
     update_alarm()
 
 # ---- AUDIO ----
-# imported from audi_alarm.py
-
+# imported from audio_alarm.py
 
 
 # ---- WEATHER ----
 # imported from weather.py
 
 def update_weather():
-	global forecast
+	global forecast, weather_icon, tk_image
 
 	try:
 		forecast = weather.city_forecast(city_of_interest)
 	except:
-		"no new weather data received"
+		print("no new weather data received")
 	
 
 	weather_label["text"] = "Description: "+ forecast["weather"][0]["description"]
-	temperature_label["text"] = "Temperature: {:.1f}°C   Max: {:.1f}°C   Min: {:.1f}°C".format(forecast["main"]["temp"], forecast["main"]["temp_max"], forecast["main"]["temp_min"])
+	temperature_label["text"] = "Temp: {:.1f}°C   Max: {:.1f}°C   Min: {:.1f}°C".format(forecast["main"]["temp"], forecast["main"]["temp_max"], forecast["main"]["temp_min"])
 	icon_id = forecast["weather"][0]["icon"]
 	icon_url = "https://openweathermap.org/img/wn/"+icon_id+"@2x.png"
+
+	try:
+		weather_icon = weather.weather_icon(icon_id).resize((60, 60), Image.LANCZOS)
+		tk_image = ImageTk.PhotoImage(weather_icon)
+		canvas.itemconfigure(weater_picture, image = tk_image)
+	except:
+		print("no image received")
+
 	threading.Timer(3600, update_weather).start()
+
+
+# ------ CALENDAR ------
+# imported from calendar.py
+
+def update_calendar():
+	calendar_label["text"] = "Calendar entries"
+
+
+	threading.Timer(3600, update_calendar).start()
+
 
 # ------------------GUI-----------------------
 
@@ -106,11 +126,17 @@ root.geometry("800x480")
 top = Frame(root, bg="black")
 top.pack(side=TOP, fill=BOTH, expand=True)
 
+top_left = Frame(top, bg="black")
+top_left.pack(side=LEFT, fill = BOTH, expand= True)
+
+top_right = Frame(top, bg="black")
+top_right.pack(side=RIGHT, fill = BOTH, expand= True)
+
 bottom = Frame(root, bg="black")
 bottom.pack(side=BOTTOM, fill=BOTH, expand=True)
 
 clock_label = Label(root, font=('TkDefaultFont', 32, 'bold'), bg='black', fg="white")
-clock_label.pack(in_=top, fill=BOTH, expand=1)
+clock_label.pack(in_=bottom, fill=BOTH, expand=1)
 
 alarm_settings = Frame(bottom, bg="black")
 alarm_settings.pack(fill = BOTH, expand=True, side=BOTTOM)
@@ -121,7 +147,7 @@ alarm_settings_hrs.pack(fill = BOTH, expand=True, side=LEFT)
 alarm_settings_min = Frame(alarm_settings, bg="black")
 alarm_settings_min.pack(fill = BOTH, expand=True, side=RIGHT)
 
-alarm_label = Label(root, font=('TkDefaultFont', 24, 'bold'), bg='black', fg="white")
+alarm_label = Label(root, font=('TkDefaultFont', 20, 'bold'), bg='black', fg="white")
 alarm_label.pack (in_=bottom, fill= BOTH, expand=1)
 
 
@@ -140,16 +166,25 @@ but_enable_alarm.pack(in_=alarm_settings)
 
 city_label = Label(root, bg='black', fg="white",font=('TkDefaultFont', 18))
 city_label["text"] = "Weather in: " + city_of_interest
-city_label.pack(in_=top)
+city_label.pack(in_=top_right)
 
 temperature_label = Label(root, bg='black', fg="white",font=('TkDefaultFont', 18))
-temperature_label.pack(in_=top)
+temperature_label.pack(in_=top_right)
+
+canvas = Canvas(root, width=60, height=60, bg="grey")
+canvas.pack(in_=top_right)
+
+weater_picture = canvas.create_image(30, 30, image=tk_image)
 
 weather_label = Label(root, bg='black', fg="white", font=('TkDefaultFont', 18))
-weather_label.pack(in_=top)
+weather_label.pack(in_=top_right)
+
+calendar_label = Label(root, bg='black', fg="white", font=('TkDefaultFont', 18))
+calendar_label.pack(in_=top_left)
 
 tick()
 update_alarm()
 update_weather()
+update_calendar()
 
 root.mainloop()

@@ -27,5 +27,5 @@ def weather_icon(icon_id):
     pil_image = Image.open(data_stream)
 
     #tk_image = ImageTk.PhotoImage(pil_image)
-    pil_image.show()
+    #pil_image.show()
     return pil_image

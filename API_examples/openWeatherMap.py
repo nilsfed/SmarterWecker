@@ -44,7 +44,7 @@ image_bytes = urlopen(url).read()
 data_stream = io.BytesIO(image_bytes)
 # open as a PIL image object
 pil_image = Image.open(data_stream)
-pil_image.show()
+#pil_image.show()
 
 tk_image = ImageTk.PhotoImage(pil_image)
 
