@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 
 import time, datetime
 
-import audio_alarm, weather
+import audio_alarm, weather, calendar_quickstart
 import threading
 
 # Initial Values
@@ -23,58 +23,58 @@ tk_image = None
 
 # ---- CLOCK ----
 def tick():
-    global alarm_time_hrs, alarm_time_min, alarm_setting
-    current_time = time.strftime('%H:%M:%S') 
-    if current_time != clock_label["text"]:
-        clock_label["text"] = current_time
-    now = datetime.datetime.now()
-    if alarm_setting == True:
-        if ((alarm_time_hrs == now.hour) & (alarm_time_min == now.minute)):
-            audio_alarm.play()
-            messagebox.showinfo("ALARM!", "It's {:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min))
-            audio_alarm.stop()
-            alarm_setting = False
-            update_alarm()
-    
-    clock_label.after(200, tick)
+	global alarm_time_hrs, alarm_time_min, alarm_setting
+	current_time = time.strftime('%H:%M:%S') 
+	if current_time != clock_label["text"]:
+		clock_label["text"] = current_time
+	now = datetime.datetime.now()
+	if alarm_setting == True:
+		if ((alarm_time_hrs == now.hour) & (alarm_time_min == now.minute)):
+			audio_alarm.play()
+			messagebox.showinfo("ALARM!", "It's {:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min))
+			audio_alarm.stop()
+			alarm_setting = False
+			update_alarm()
+	
+	clock_label.after(200, tick)
 
 def update_alarm():
-    global alarm_time_hrs
-    global alarm_time_min
-    
-    alarm_string= "Alarm:\n{:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min)
-    alarm_label["text"] = alarm_string
-    if alarm_setting == True:
-        but_enable_alarm["text"] = "enabled"
-        but_enable_alarm.configure(fg="green") 
-    else:
-        but_enable_alarm["text"] = "disabled"
-        but_enable_alarm.configure(fg="red") 
-    
+	global alarm_time_hrs
+	global alarm_time_min
+	
+	alarm_string= "Alarm:\n{:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min)
+	alarm_label["text"] = alarm_string
+	if alarm_setting == True:
+		but_enable_alarm["text"] = "enabled"
+		but_enable_alarm.configure(fg="green") 
+	else:
+		but_enable_alarm["text"] = "disabled"
+		but_enable_alarm.configure(fg="red") 
+	
 def inc_hrs():
-    global alarm_time_hrs
-    alarm_time_hrs =(alarm_time_hrs + 1)% 24
-    update_alarm()
+	global alarm_time_hrs
+	alarm_time_hrs =(alarm_time_hrs + 1)% 24
+	update_alarm()
 
 def dec_hrs():
-    global alarm_time_hrs
-    alarm_time_hrs = (alarm_time_hrs - 1)% 24
-    update_alarm()
+	global alarm_time_hrs
+	alarm_time_hrs = (alarm_time_hrs - 1)% 24
+	update_alarm()
 
 def inc_min():
-    global alarm_time_min
-    alarm_time_min =(alarm_time_min + 1)% 60
-    update_alarm()
-    
+	global alarm_time_min
+	alarm_time_min =(alarm_time_min + 1)% 60
+	update_alarm()
+	
 def dec_min():
-    global alarm_time_min
-    alarm_time_min =(alarm_time_min - 1)% 60
-    update_alarm()
+	global alarm_time_min
+	alarm_time_min =(alarm_time_min - 1)% 60
+	update_alarm()
 
 def toggle_alarm():
-    global alarm_setting
-    alarm_setting = not alarm_setting
-    update_alarm()
+	global alarm_setting
+	alarm_setting = not alarm_setting
+	update_alarm()
 
 # ---- AUDIO ----
 # imported from audio_alarm.py
@@ -92,8 +92,8 @@ def update_weather():
 		print("no new weather data received")
 	
 
-	weather_label["text"] = "Description: "+ forecast["weather"][0]["description"]
-	temperature_label["text"] = "Temp: {:.1f}°C   Max: {:.1f}°C   Min: {:.1f}°C".format(forecast["main"]["temp"], forecast["main"]["temp_max"], forecast["main"]["temp_min"])
+	weather_label["text"] = forecast["weather"][0]["description"]
+	temperature_label["text"] = "{:.1f}°C   Max: {:.1f}°C   Min: {:.1f}°C".format(forecast["main"]["temp"], forecast["main"]["temp_max"], forecast["main"]["temp_min"])
 	icon_id = forecast["weather"][0]["icon"]
 	icon_url = "https://openweathermap.org/img/wn/"+icon_id+"@2x.png"
 
@@ -111,8 +111,18 @@ def update_weather():
 # imported from calendar.py
 
 def update_calendar():
-	calendar_label["text"] = "Calendar entries"
+	calendar_string = "Calendar entries: "
+	events = calendar_quickstart.get_events(results=6)
 
+
+	if not events:
+		calendar_string+=('No upcoming events found.')
+	for event in events:
+		start = str(event['start'].get('dateTime', event['start'].get('date')))
+		calendar_string+= ("\n" + start[5:10] +", " + start[11:16] + " " +event['summary'])
+
+	calendar_label["justify"]="left"
+	calendar_label["text"] = calendar_string
 
 	threading.Timer(3600, update_calendar).start()
 
@@ -181,7 +191,7 @@ weather_picture = canvas.create_image(30, 30, image=tk_image)
 weather_label = Label(root, bg='black', fg="white", font=('TkDefaultFont', 18))
 weather_label.pack(in_=top_right)
 
-calendar_label = Label(root, bg='black', fg="white", font=('TkDefaultFont', 18))
+calendar_label = Label(root, bg='black', fg="white", font=('TkDefaultFont', 14), anchor= "w")
 calendar_label.pack(in_=top_left)
 
 tick()
