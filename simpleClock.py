@@ -7,6 +7,12 @@ import time, datetime
 import audio_alarm, weather, calendar_quickstart
 import threading
 
+from deepspeech import Model
+import scipy.io.wavfile as wav
+import sys
+import pyaudio
+import wave
+
 # Initial Values
 
 city_of_interest = "Karlsruhe,de"
@@ -18,6 +24,7 @@ alarm_setting = False
 forecast = {'coord': {'lon': 8.4, 'lat': 49.01}, 'weather': [{'id': 701, 'main': 'Mist', 'description': 'sun', 'icon': '50n'}], 'base': 'stations', 'main': {'temp': 1.37, 'feels_like': -1.11, 'temp_min': -0.56, 'temp_max': 4, 'pressure': 1027, 'humidity': 100}, 'visibility': 1400, 'wind': {'speed': 1}, 'clouds': {'all': 90}, 'dt': 1578326220, 'sys': {'type': 1, 'id': 1314, 'country': 'DE', 'sunrise': 1578295188, 'sunset': 1578325422}, 'timezone': 3600, 'id': 2892794, 'name': 'Karlsruhe', 'cod': 200}
 weather_icon = None
 tk_image = None
+model_retval = None
 
 # ------------------FUNCTIONS-----------------------
 
@@ -78,6 +85,87 @@ def toggle_alarm():
 
 # ---- AUDIO ----
 # imported from audio_alarm.py
+
+# ---- DeepSpeech
+def load_model():
+
+	models = sys.argv[1] 	#.tflite
+	lm = sys.argv[2] 	# lm.binary
+	trie = sys.argv[3] 	# trie
+
+    BEAM_WIDTH = 500
+    LM_ALPHA = 0.75
+    LM_BETA = 1.85
+
+    ds = Model(models, BEAM_WIDTH)
+
+    ds.enableDecoderWithLM(lm, trie, LM_ALPHA, LM_BETA)
+
+    sample_rate = ds.sampleRate()
+
+    return [ds, sample_rate]
+
+
+def analyze_wav_file()
+	global model_retval
+	fs, audio = wav.read("speech.wav")
+	print("sample rate wav file: ", fs)
+	print("sample rate model:", model_retval[1])
+
+	processed_data = model_retval[0].stt(audio)
+
+	print(processed_data)
+
+	with open('./tmp/data.txt', 'w') as f:
+
+    	f.write(processed_data)
+
+	return processed_data
+
+def initialize_DeepSpeech():
+	global model_retval
+	model_retval = load_model()
+
+def run_DeepSpeech():
+
+	form_1 = pyaudio.paInt16 # 16-bit resolution
+	chans = 1 # 1 channel
+	samp_rate = 16000 # 44.1kHz sampling rate for deepspeech: 16k
+	chunk = 4096 # 2^12 samples for buffer
+	record_secs = 5 # seconds to record
+	dev_index = 2 # device index found by p.get_device_info_by_index(ii)
+	wav_output_filename = 'speech.wav' # name of .wav file
+
+	audio = pyaudio.PyAudio() # create pyaudio instantiation
+
+	# create pyaudio stream
+	stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
+	                    input_device_index = dev_index,input = True, \
+	                    frames_per_buffer=chunk)
+	print("recording")
+	frames = []
+
+	# loop through stream and append audio chunks to frame array
+	for ii in range(0,int((samp_rate/chunk)*record_secs)):
+	    data = stream.read(chunk)
+	    frames.append(data)
+
+	print("finished recording")
+
+	# stop the stream, close it, and terminate the pyaudio instantiation
+	stream.stop_stream()
+	stream.close()
+	audio.terminate()
+
+	# save the audio frames as .wav file
+	wavefile = wave.open(wav_output_filename,'wb')
+	wavefile.setnchannels(chans)
+	wavefile.setsampwidth(audio.get_sample_size(form_1))
+	wavefile.setframerate(samp_rate)
+	wavefile.writeframes(b''.join(frames))
+	wavefile.close()
+
+	analyze_wav_file()
 
 
 # ---- WEATHER ----
