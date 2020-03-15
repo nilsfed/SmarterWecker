@@ -30,58 +30,58 @@ model_retval = None
 
 # ---- CLOCK ----
 def tick():
-	global alarm_time_hrs, alarm_time_min, alarm_setting
-	current_time = time.strftime('%H:%M:%S') 
-	if current_time != clock_label["text"]:
-		clock_label["text"] = current_time
-	now = datetime.datetime.now()
-	if alarm_setting == True:
-		if ((alarm_time_hrs == now.hour) & (alarm_time_min == now.minute)):
-			audio_alarm.play()
-			messagebox.showinfo("ALARM!", "It's {:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min))
-			audio_alarm.stop()
-			alarm_setting = False
-			update_alarm()
-	
-	clock_label.after(200, tick)
+    global alarm_time_hrs, alarm_time_min, alarm_setting
+    current_time = time.strftime('%H:%M:%S') 
+    if current_time != clock_label["text"]:
+        clock_label["text"] = current_time
+    now = datetime.datetime.now()
+    if alarm_setting == True:
+        if ((alarm_time_hrs == now.hour) & (alarm_time_min == now.minute)):
+            audio_alarm.play()
+            messagebox.showinfo("ALARM!", "It's {:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min))
+            audio_alarm.stop()
+            alarm_setting = False
+            update_alarm()
+    
+    clock_label.after(200, tick)
 
 def update_alarm():
-	global alarm_time_hrs
-	global alarm_time_min
-	
-	alarm_string= "Alarm:\n{:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min)
-	alarm_label["text"] = alarm_string
-	if alarm_setting == True:
-		but_enable_alarm["text"] = "enabled"
-		but_enable_alarm.configure(fg="green") 
-	else:
-		but_enable_alarm["text"] = "disabled"
-		but_enable_alarm.configure(fg="red") 
-	
+    global alarm_time_hrs
+    global alarm_time_min
+    
+    alarm_string= "Alarm:\n{:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min)
+    alarm_label["text"] = alarm_string
+    if alarm_setting == True:
+        but_enable_alarm["text"] = "enabled"
+        but_enable_alarm.configure(fg="green") 
+    else:
+        but_enable_alarm["text"] = "disabled"
+        but_enable_alarm.configure(fg="red") 
+    
 def inc_hrs():
-	global alarm_time_hrs
-	alarm_time_hrs =(alarm_time_hrs + 1)% 24
-	update_alarm()
+    global alarm_time_hrs
+    alarm_time_hrs =(alarm_time_hrs + 1)% 24
+    update_alarm()
 
 def dec_hrs():
-	global alarm_time_hrs
-	alarm_time_hrs = (alarm_time_hrs - 1)% 24
-	update_alarm()
+    global alarm_time_hrs
+    alarm_time_hrs = (alarm_time_hrs - 1)% 24
+    update_alarm()
 
 def inc_min():
-	global alarm_time_min
-	alarm_time_min =(alarm_time_min + 1)% 60
-	update_alarm()
-	
+    global alarm_time_min
+    alarm_time_min =(alarm_time_min + 1)% 60
+    update_alarm()
+    
 def dec_min():
-	global alarm_time_min
-	alarm_time_min =(alarm_time_min - 1)% 60
-	update_alarm()
+    global alarm_time_min
+    alarm_time_min =(alarm_time_min - 1)% 60
+    update_alarm()
 
 def toggle_alarm():
-	global alarm_setting
-	alarm_setting = not alarm_setting
-	update_alarm()
+    global alarm_setting
+    alarm_setting = not alarm_setting
+    update_alarm()
 
 # ---- AUDIO ----
 # imported from audio_alarm.py
@@ -89,9 +89,9 @@ def toggle_alarm():
 # ---- DeepSpeech
 def load_model():
 
-	models = sys.argv[1] 	#.tflite
-	lm = sys.argv[2] 	# lm.binary
-	trie = sys.argv[3] 	# trie
+    models = "models/output_graph.tflite"    #.tflite
+    lm = "models/lm.binary"    # lm.binary
+    trie = "models/trie"  # trie
 
     BEAM_WIDTH = 500
     LM_ALPHA = 0.75
@@ -106,113 +106,113 @@ def load_model():
     return [ds, sample_rate]
 
 
-def analyze_wav_file()
-	global model_retval
-	fs, audio = wav.read("speech.wav")
-	print("sample rate wav file: ", fs)
-	print("sample rate model:", model_retval[1])
+def analyze_wav_file():
+    global model_retval
+    fs, audio = wav.read("speech.wav")
+    print("sample rate wav file: ", fs)
+    print("sample rate model:", model_retval[1])
 
-	processed_data = model_retval[0].stt(audio)
+    processed_data = model_retval[0].stt(audio)
 
-	print(processed_data)
+    print(processed_data)
 
-	with open('./tmp/data.txt', 'w') as f:
+    with open('./tmp/data.txt', 'w') as f:
 
-    	f.write(processed_data)
+        f.write(processed_data)
 
-	return processed_data
+    return processed_data
 
 def initialize_DeepSpeech():
-	global model_retval
-	model_retval = load_model()
+    global model_retval
+    model_retval = load_model()
 
 def run_DeepSpeech():
 
-	form_1 = pyaudio.paInt16 # 16-bit resolution
-	chans = 1 # 1 channel
-	samp_rate = 16000 # 44.1kHz sampling rate for deepspeech: 16k
-	chunk = 4096 # 2^12 samples for buffer
-	record_secs = 5 # seconds to record
-	dev_index = 2 # device index found by p.get_device_info_by_index(ii)
-	wav_output_filename = 'speech.wav' # name of .wav file
+    form_1 = pyaudio.paInt16 # 16-bit resolution
+    chans = 1 # 1 channel
+    samp_rate = 16000 # 44.1kHz sampling rate for deepspeech: 16k
+    chunk = 4096 # 2^12 samples for buffer
+    record_secs = 5 # seconds to record
+    dev_index = 2 # device index found by p.get_device_info_by_index(ii)
+    wav_output_filename = 'speech.wav' # name of .wav file
 
-	audio = pyaudio.PyAudio() # create pyaudio instantiation
+    audio = pyaudio.PyAudio() # create pyaudio instantiation
 
-	# create pyaudio stream
-	stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
-	                    input_device_index = dev_index,input = True, \
-	                    frames_per_buffer=chunk)
-	print("recording")
-	frames = []
+    # create pyaudio stream
+    stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
+                        input_device_index = dev_index,input = True, \
+                        frames_per_buffer=chunk)
+    print("recording")
+    frames = []
 
-	# loop through stream and append audio chunks to frame array
-	for ii in range(0,int((samp_rate/chunk)*record_secs)):
-	    data = stream.read(chunk)
-	    frames.append(data)
+    # loop through stream and append audio chunks to frame array
+    for ii in range(0,int((samp_rate/chunk)*record_secs)):
+        data = stream.read(chunk)
+        frames.append(data)
 
-	print("finished recording")
+    print("finished recording")
 
-	# stop the stream, close it, and terminate the pyaudio instantiation
-	stream.stop_stream()
-	stream.close()
-	audio.terminate()
+    # stop the stream, close it, and terminate the pyaudio instantiation
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
 
-	# save the audio frames as .wav file
-	wavefile = wave.open(wav_output_filename,'wb')
-	wavefile.setnchannels(chans)
-	wavefile.setsampwidth(audio.get_sample_size(form_1))
-	wavefile.setframerate(samp_rate)
-	wavefile.writeframes(b''.join(frames))
-	wavefile.close()
+    # save the audio frames as .wav file
+    wavefile = wave.open(wav_output_filename,'wb')
+    wavefile.setnchannels(chans)
+    wavefile.setsampwidth(audio.get_sample_size(form_1))
+    wavefile.setframerate(samp_rate)
+    wavefile.writeframes(b''.join(frames))
+    wavefile.close()
 
-	analyze_wav_file()
+    analyze_wav_file()
 
 
 # ---- WEATHER ----
 # imported from weather.py
 
 def update_weather():
-	global forecast, weather_icon, tk_image
+    global forecast, weather_icon, tk_image
 
-	try:
-		forecast = weather.city_forecast(city_of_interest)
-	except:
-		print("no new weather data received")
-	
+    try:
+        forecast = weather.city_forecast(city_of_interest)
+    except:
+        print("no new weather data received")
+    
 
-	weather_label["text"] = forecast["weather"][0]["description"]
-	temperature_label["text"] = "{:.1f}°C   Max: {:.1f}°C   Min: {:.1f}°C".format(forecast["main"]["temp"], forecast["main"]["temp_max"], forecast["main"]["temp_min"])
-	icon_id = forecast["weather"][0]["icon"]
-	icon_url = "https://openweathermap.org/img/wn/"+icon_id+"@2x.png"
+    weather_label["text"] = forecast["weather"][0]["description"]
+    temperature_label["text"] = "{:.1f}°C   Max: {:.1f}°C   Min: {:.1f}°C".format(forecast["main"]["temp"], forecast["main"]["temp_max"], forecast["main"]["temp_min"])
+    icon_id = forecast["weather"][0]["icon"]
+    icon_url = "https://openweathermap.org/img/wn/"+icon_id+"@2x.png"
 
-	try:
-		weather_icon = weather.weather_icon(icon_id).resize((60, 60), Image.LANCZOS)
-		tk_image = ImageTk.PhotoImage(weather_icon)
-		canvas.itemconfigure(weather_picture, image = tk_image)
-	except:
-		print("no image received")
+    try:
+        weather_icon = weather.weather_icon(icon_id).resize((60, 60), Image.LANCZOS)
+        tk_image = ImageTk.PhotoImage(weather_icon)
+        canvas.itemconfigure(weather_picture, image = tk_image)
+    except:
+        print("no image received")
 
-	threading.Timer(3600, update_weather).start()
+    threading.Timer(3600, update_weather).start()
 
 
 # ------ CALENDAR ------
 # imported from calendar.py
 
 def update_calendar():
-	calendar_string = "Calendar entries: "
-	events = calendar_quickstart.get_events(results=6)
+    calendar_string = "Calendar entries: "
+    events = calendar_quickstart.get_events(results=6)
 
 
-	if not events:
-		calendar_string+=('No upcoming events found.')
-	for event in events:
-		start = str(event['start'].get('dateTime', event['start'].get('date')))
-		calendar_string+= ("\n" + start[5:10] +", " + start[11:16] + " " +event['summary'])
+    if not events:
+        calendar_string+=('No upcoming events found.')
+    for event in events:
+        start = str(event['start'].get('dateTime', event['start'].get('date')))
+        calendar_string+= ("\n" + start[5:10] +", " + start[11:16] + " " +event['summary'])
 
-	calendar_label["justify"]="left"
-	calendar_label["text"] = calendar_string
+    calendar_label["justify"]="left"
+    calendar_label["text"] = calendar_string
 
-	threading.Timer(3600, update_calendar).start()
+    threading.Timer(3600, update_calendar).start()
 
 
 # ------------------GUI-----------------------
@@ -264,11 +264,14 @@ but_dec_hrs.pack(in_=alarm_settings_hrs)
 but_enable_alarm = Button(root, text="disabled",bg='black', fg="white", width=20, height=2, command=toggle_alarm)
 but_enable_alarm.pack(in_=alarm_settings)
 
+but_speech = Button(root, text="DeepSpeech",bg='black', fg="violet", width=20, height=2, command=run_DeepSpeech)
+but_speech.pack(in_=alarm_settings)
+
 city_label = Label(root, bg='black', fg="white",font=('TkDefaultFont', 18))
 city_label["text"] = "Weather in: " + city_of_interest
 city_label.pack(in_=top_right)
 
-temperature_label = Label(root, bg='black', fg="white",font=('TkDefaultFont', 18))
+temperature_label = Label(root, bg='black', fg="white",font=('TkDefaultFont', 15))
 temperature_label.pack(in_=top_right)
 
 canvas = Canvas(root, width=60, height=60, bg="grey")
@@ -282,6 +285,7 @@ weather_label.pack(in_=top_right)
 calendar_label = Label(root, bg='black', fg="white", font=('TkDefaultFont', 14), anchor= "w")
 calendar_label.pack(in_=top_left)
 
+initialize_DeepSpeech()
 tick()
 update_alarm()
 update_weather()
