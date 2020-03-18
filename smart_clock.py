@@ -19,32 +19,60 @@ city_of_interest = "Karlsruhe,de"
 alarm_time_hrs = 11
 alarm_time_min = 00
 alarm_setting = False
+alarm_shown = False
 
 #default forecast for debugging/offline
 forecast = {'coord': {'lon': 8.4, 'lat': 49.01}, 'weather': [{'id': 701, 'main': 'Mist', 'description': 'sun', 'icon': '50n'}], 'base': 'stations', 'main': {'temp': 1.37, 'feels_like': -1.11, 'temp_min': -0.56, 'temp_max': 4, 'pressure': 1027, 'humidity': 100}, 'visibility': 1400, 'wind': {'speed': 1}, 'clouds': {'all': 90}, 'dt': 1578326220, 'sys': {'type': 1, 'id': 1314, 'country': 'DE', 'sunrise': 1578295188, 'sunset': 1578325422}, 'timezone': 3600, 'id': 2892794, 'name': 'Karlsruhe', 'cod': 200}
 weather_icon = None
 tk_image = None
 model_retval = None
+top = None
 
 # ------------------FUNCTIONS-----------------------
 
 # ---- CLOCK ----
 def tick():
-    global alarm_time_hrs, alarm_time_min, alarm_setting
+    global alarm_time_hrs, alarm_time_min, alarm_setting, top, alarm_shown
     current_time = time.strftime('%H:%M:%S') 
     if current_time != clock_label["text"]:
         clock_label["text"] = current_time
     now = datetime.datetime.now()
     if alarm_setting == True:
         if ((alarm_time_hrs == now.hour) & (alarm_time_min == now.minute)):
-            audio_alarm.play()
-            messagebox.showinfo("ALARM!", "It's {:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min))
-            audio_alarm.stop()
-            alarm_setting = False
-            update_alarm()
+            if alarm_shown == False:
+                audio_alarm.play()
+                threading.Timer(1, alarm_speech).start()
+                top = Toplevel(master=root)
+                top.title('Alarm')
+                Message(top, text="It's {:02d}:{:02d}".format(alarm_time_hrs, alarm_time_min), padx=20, pady=20, ).pack()
+                button = Button(top, text="Dismiss", command=stop_alarm)
+                button.pack()
+                alarm_shown = True
+            
     
     clock_label.after(200, tick)
 
+def stop_alarm():
+    global alarm_shown, top, alarm_setting
+    print("Stop Alarm")
+    try:
+        top.destroy()
+        alarm_shown = False
+        audio_alarm.stop() 
+    except:
+        print("Alarm already stopped")
+    alarm_setting = False
+    update_alarm()
+    
+def alarm_speech():
+    global alarm_shown
+    while alarm_shown:   
+        alarm_off = alarm_off_speech()
+        if alarm_off == True:    
+            print("Alarm Sound stopped via Speech")
+            stop_alarm()
+    
+        
 def update_alarm():
     global alarm_time_hrs
     global alarm_time_min
@@ -108,9 +136,10 @@ def load_model():
 
 def analyze_wav_file(filename):
     global model_retval
-    fs, audio = wav.read("./tmp/speech.wav")
-    print("sample rate wav file: ", fs)
-    print("sample rate model:", model_retval[1])
+    fs, audio = wav.read(filename)
+    
+    #print("sample rate wav file: ", fs)
+    #print("sample rate model:", model_retval[1])
 
     processed_data = model_retval[0].stt(audio)
 
@@ -139,8 +168,10 @@ def record_audio_wav(filename, duration):
     audio = pyaudio.PyAudio() # create pyaudio instantiation
 
     # create pyaudio stream
-    stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
-                input_device_index = dev_index,input = True, \
+    
+    stream = audio.open(format = form_1,rate = samp_rate,channels = chans,
+                        input_device_index = dev_index,
+                input = True,
                 frames_per_buffer=chunk)
     print("recording")
     frames = []
@@ -164,7 +195,17 @@ def record_audio_wav(filename, duration):
     wavefile.setframerate(samp_rate)
     wavefile.writeframes(b''.join(frames))
     wavefile.close()
-
+    
+def alarm_off_speech():
+    record_audio_wav("./tmp/alarm_speech.wav", 5)
+    print("alarm_speech recorded")
+    speech_as_string = analyze_wav_file("./tmp/alarm_speech.wav")
+    print("Alarm_speech: ", speech_as_string)
+    if "off" in speech_as_string:
+        return True
+    else:
+        return False
+    
 def run_DeepSpeech_memo():
 
     record_audio_wav("./tmp/speech.wav", 10)    
@@ -229,6 +270,9 @@ def update_calendar():
 root = Tk()
 root.title("Smart Clock v1")
 root.geometry("800x480")
+root.attributes("-fullscreen", True)
+root.bind("<Escape>", lambda event:root.destroy())
+
 
 # create the main sections of the layout, 
 # and lay them out
@@ -269,6 +313,12 @@ but_inc_min.pack(in_=alarm_settings_min)
 but_dec_min.pack(in_=alarm_settings_min)
 but_inc_hrs.pack(in_=alarm_settings_hrs)
 but_dec_hrs.pack(in_=alarm_settings_hrs)
+
+exit_frame = Frame(alarm_settings_min, bg="black")
+exit_frame.pack(fill = None, expand=False, side=RIGHT)
+exit_button = Button(root, text="Exit Clock",bg='red', fg="white", width=7, height=2, command=root.destroy)
+exit_button.pack(in_=exit_frame)
+
 
 but_enable_alarm = Button(root, text="disabled",bg='black', fg="white", width=20, height=2, command=toggle_alarm)
 but_enable_alarm.pack(in_=alarm_settings)
