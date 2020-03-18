@@ -108,7 +108,7 @@ def load_model():
 
 def analyze_wav_file():
     global model_retval
-    fs, audio = wav.read("speech.wav")
+    fs, audio = wav.read("./tmp/speech.wav")
     print("sample rate wav file: ", fs)
     print("sample rate model:", model_retval[1])
 
@@ -134,7 +134,7 @@ def run_DeepSpeech():
     chunk = 4096 # 2^12 samples for buffer
     record_secs = 5 # seconds to record
     dev_index = 2 # device index found by p.get_device_info_by_index(ii)
-    wav_output_filename = 'speech.wav' # name of .wav file
+    wav_output_filename = './tmp/speech.wav' # name of .wav file
 
     audio = pyaudio.PyAudio() # create pyaudio instantiation
 
