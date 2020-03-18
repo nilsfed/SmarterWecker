@@ -171,8 +171,7 @@ def record_audio_wav(filename, duration):
     
     stream = audio.open(format = form_1,rate = samp_rate,channels = chans,
                         input_device_index = dev_index,
-                input = True,
-                frames_per_buffer=chunk)
+                input = True, frames_per_buffer=chunk)
     print("recording")
     frames = []
 
@@ -206,8 +205,12 @@ def alarm_off_speech():
     else:
         return False
     
-def run_DeepSpeech_memo():
 
+def run_DeepSpeech_memo():
+    #needs to be run in another thread than the GUI Thread; else: GUI freeze 
+    threading.Timer(0, deepSpeech_memo).start()
+
+def deepSpeech_memo():
     record_audio_wav("./tmp/speech.wav", 10)    
     speech_as_string = analyze_wav_file("./tmp/speech.wav")
     save_as_txt("./tmp/memo.txt", speech_as_string)
