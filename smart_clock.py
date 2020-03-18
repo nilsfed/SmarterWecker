@@ -106,7 +106,7 @@ def load_model():
     return [ds, sample_rate]
 
 
-def analyze_wav_file():
+def analyze_wav_file(filename):
     global model_retval
     fs, audio = wav.read("./tmp/speech.wav")
     print("sample rate wav file: ", fs)
@@ -116,32 +116,32 @@ def analyze_wav_file():
 
     print(processed_data)
 
-    with open('./tmp/data.txt', 'w') as f:
+    return processed_data
+
+def save_as_txt(filename, processed_data):
+    with open(filename, 'w') as f:
 
         f.write(processed_data)
-
-    return processed_data
 
 def initialize_DeepSpeech():
     global model_retval
     model_retval = load_model()
 
-def run_DeepSpeech():
-
+def record_audio_wav(filename, duration):
     form_1 = pyaudio.paInt16 # 16-bit resolution
     chans = 1 # 1 channel
-    samp_rate = 16000 # 44.1kHz sampling rate for deepspeech: 16k
+    samp_rate = 16000 # 44.1kHz sampling rate possible but for deepspeech: 16k
     chunk = 4096 # 2^12 samples for buffer
-    record_secs = 5 # seconds to record
+    record_secs = duration # seconds to record
     dev_index = 2 # device index found by p.get_device_info_by_index(ii)
-    wav_output_filename = './tmp/speech.wav' # name of .wav file
+    wav_output_filename = filename # name of .wav file
 
     audio = pyaudio.PyAudio() # create pyaudio instantiation
 
     # create pyaudio stream
     stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
-                        input_device_index = dev_index,input = True, \
-                        frames_per_buffer=chunk)
+                input_device_index = dev_index,input = True, \
+                frames_per_buffer=chunk)
     print("recording")
     frames = []
 
@@ -165,8 +165,17 @@ def run_DeepSpeech():
     wavefile.writeframes(b''.join(frames))
     wavefile.close()
 
-    analyze_wav_file()
+def run_DeepSpeech_memo():
 
+    record_audio_wav("./tmp/speech.wav", 10)    
+    speech_as_string = analyze_wav_file("./tmp/speech.wav")
+    save_as_txt("./tmp/memo.txt", speech_as_string)
+
+def show_DeepSpeech_memo():
+    with open("./tmp/memo.txt", 'r') as f:
+        content = f.read()
+        
+    messagebox.showinfo("Your Memo", content)
 
 # ---- WEATHER ----
 # imported from weather.py
@@ -264,8 +273,11 @@ but_dec_hrs.pack(in_=alarm_settings_hrs)
 but_enable_alarm = Button(root, text="disabled",bg='black', fg="white", width=20, height=2, command=toggle_alarm)
 but_enable_alarm.pack(in_=alarm_settings)
 
-but_speech = Button(root, text="DeepSpeech",bg='black', fg="violet", width=20, height=2, command=run_DeepSpeech)
+but_speech = Button(root, text="DeepSpeech Memo",bg='black', fg="violet", width=20, height=2, command=run_DeepSpeech_memo)
 but_speech.pack(in_=alarm_settings)
+
+but_show_memo = Button(root, text="Show Memo",bg='black', fg="orange", width=20, height=2, command=show_DeepSpeech_memo)
+but_show_memo.pack(in_=alarm_settings)
 
 city_label = Label(root, bg='black', fg="white",font=('TkDefaultFont', 18))
 city_label["text"] = "Weather in: " + city_of_interest
